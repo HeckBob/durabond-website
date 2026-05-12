@@ -1,0 +1,133 @@
+Durabond staging website
+
+Durabond Redesign — Staging Site Reference
+
+Staging Access
+
+| | |
+|---|---|
+| URL | https://durabond.ca/durabond-redesig/index.php |
+| Client Username | clientreview |
+| Client Password | Dura2711! |
+| Admin Username | durabadmin |
+| Role | Administrator (required by WP Staging login) |
+
+Page URLs
+
+All URLs must include index.php due to GoDaddy Nginx routing (see Technical Notes below).
+
+| Page | URL |
+|---|---|
+| Home | https://durabond.ca/durabond-redesig/index.php |
+| About Us | https://durabond.ca/durabond-redesig/index.php?page_id=1001 |
+| Sectors | https://durabond.ca/durabond-redesig/index.php?page_id=1002 |
+| Services | https://durabond.ca/durabond-redesig/index.php?page_id=1003 |
+| Contact | https://durabond.ca/durabond-redesig/index.php?page_id=1004 |
+
+Theme Details
+
+| | |
+|---|---|
+| Theme Name | Durabond 2025 |
+| Theme Folder | durabond-theme |
+| Local Files | D:\AI-Projects\durabond-theme\ |
+| GitHub Repo | https://github.com/HeckBob/durabond-website |
+
+Template Files
+
+| File | Purpose |
+|---|---|
+| front-page.php | Home page (auto-used as static front page) |
+| page-about.php | About Us — Template Name: "About Page" |
+| page-sectors.php | Sectors — Template Name: "Sectors Page" |
+| page-services.php | Services — Template Name: "Services Page" |
+| page-contact.php | Contact — Template Name: "Contact Page" |
+| header.php | Site header, nav, topbar |
+| footer.php | Site footer |
+| functions.php | Enqueue styles/scripts, theme supports, nav menus |
+| assets/css/durabond.css | Main stylesheet |
+| assets/js/main.js | Main JavaScript |
+
+What Was Done
+
+1. Theme Development
+
+- Analyzed the existing durabond.ca (Avada theme) site
+- Built a full 5-page static HTML prototype
+- Converted to a WordPress theme ("Durabond 2025")
+- Uploaded and activated on the WP Staging site
+
+2. WordPress Pages Created
+
+- Created 5 pages via REST API (wp.apiFetch)
+- Assigned custom page templates to each
+- Set Home (ID 1000) as the static front page in Reading Settings
+
+3. Staging Site Fixes
+
+- Canonical Redirect Disabled — WordPress was redirecting /index.php to /durabond-redesig/ which Nginx routes to the root site. Fixed via Code Snippets plugin: add_filter('redirect_canonical', '__return_false')
+- Nav Link URL Rewriting — Nav links used pretty URLs (/about, /sectors, etc.) which don't work on Nginx. Fixed via Code Snippets plugin with output buffering to rewrite all nav hrefs to index.php?page_id=X format
+- Loopback Bypass Snippet — Attempted but ineffective (left inactive). GoDaddy MWP blocks the WordPress Theme Editor's loopback verification, preventing direct PHP file edits. Code Snippets plugin was the workaround.
+
+4. Access Control
+
+- WP Staging provides the login gate (requires WordPress credentials)
+- Password Protected plugin also installed and configured (Allow Administrators + Allow Logged In Users) — acts as a secondary layer
+- Created clientreview account (Administrator role, required for WP Staging login)
+
+Plugins Installed on Staging
+
+| Plugin | Purpose |
+|---|---|
+| Code Snippets | Run PHP snippets from DB (bypasses GoDaddy file edit restriction) |
+| Password Protected | Site-wide password protection |
+
+Active Code Snippets
+
+| Snippet | What It Does |
+|---|---|
+| Disable Canonical Redirect for Nginx | add_filter('redirect_canonical', '__return_false') — prevents WP from redirecting index.php to directory URL |
+| Fix Nav Links for Staging URLs | Output buffering to rewrite nav hrefs from pretty URLs to index.php?page_id=X |
+| Bypass Theme Editor Loopback Check | Inactive — didn't work as intended |
+
+Technical Notes
+
+GoDaddy Managed WordPress + Nginx
+
+- GoDaddy MWP uses Nginx, not Apache. .htaccess files have no effect on URL routing.
+- Nginx config: try_files $uri $uri/ /index.php?$args — routes all non-file directory requests to the root index.php, not subdirectory.
+- Direct PHP file paths work (/durabond-redesig/index.php, /durabond-redesig/wp-admin/themes.php)
+- Directory paths fail (/durabond-redesig/ falls through to root WordPress → 404)
+- ABSPATH on GoDaddy MWP: /dom967269/
+- Site uses Cloudflare CDN (server: cloudflare header)
+
+Permalink Structure
+
+- Staging uses Plain permalinks (index.php?page_id=X)
+- Pretty permalinks would require Nginx config changes (not possible on GoDaddy MWP for subdirectories)
+
+WordPress Theme Editor Limitation
+
+- GoDaddy MWP blocks the loopback HTTP request WordPress makes to verify PHP file edits
+- Error: "Unable to communicate back with site to check for fatal errors, so the PHP change was reverted"
+- Workaround: Use the Code Snippets plugin to store PHP code in the database instead
+
+Live Site
+
+- .htaccess at /dom967269/.htaccess contains a staging exclusion rule (has no effect on Nginx but was left in place)
+- Live site Avada Child Theme functions.php was restored to original after diagnostics
+- Debug file wp-content/htaccess_debug.txt may still exist (contains server path info — should be deleted)
+
+Future Considerations
+
+- Cloudflare proxy: Could set up a subdomain (e.g., staging.lemysta.com) with a Cloudflare Worker to proxy requests to the staging site, eliminating the index.php URL requirement
+- Theme file edits: Must be done via SFTP or Code Snippets — WordPress Theme Editor won't work on GoDaddy MWP staging
+- Going live: When deploying to production (root domain), remove the Code Snippets for canonical redirect and nav link rewriting — they're only needed for the subdirectory staging setup
+
+Recent Updates (May 11, 2026)
+
+- Added Customer Portal button to header nav on all pages, linking to HubSpot tickets view: https://durabond-7115212.hs-sites.com/tickets-view
+- Replaced static support form on Contact page (Support tab) with embedded HubSpot form: https://share.hsforms.com/24lTu0sQWRMCxsSKHS8wDUQ48i4s
+- Theme source files and static HTML preview pushed to GitHub: https://github.com/HeckBob/durabond-website
+- Local theme files moved from D:\AI-Projects\smartpickup\durabond-theme\ to D:\AI-Projects\durabond-theme\
+- Updated theme ZIP created and uploaded to staging site
